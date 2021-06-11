@@ -1,3 +1,3 @@
-module Gotator
+module gotator
 
 go 1.16

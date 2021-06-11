@@ -23,15 +23,15 @@ Gotator is a tool to generate DNS wordlists through permutations.
 If you want to make modifications locally and compile it, follow the instructions below:
 
 ```
-> git clone https://github.com/Josue87/Gotator.git
-> cd Gotator
+> git clone https://github.com/Josue87/gotator.git
+> cd gotator
 > go build
 ```
 
 If you are only interested in using the program:
 
 ```
-> go get github.com/Josue87/Gotator
+> go get github.com/Josue87/gotator
 ```
 
 # Options

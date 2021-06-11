@@ -47,5 +47,6 @@ Only the first 2 options are mandatory.
 # How to use
 
 ```
-go run gotator.go -sub domains.txt -perm permutations.txt -depth 3 -numbers -t 200 > output.txt
+Gotator -sub domains.txt -perm permutations.txt -depth 3 -numbers -t 200 > output.txt
 ```
+If you are compiling locally don't forget the ./ in front of your binary!

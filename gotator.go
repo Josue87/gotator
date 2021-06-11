@@ -165,6 +165,11 @@ func main() {
 		intDepth = 1
 	}
 
+	if *flIterateNumbers < 0 {
+		println("[-] Numbers can not be < 0. Configuring to 0")
+		*flIterateNumbers = 0
+	}
+
 	domains := make(chan string, threads)
 	tracker := make(chan empty)
 	var permutations []string

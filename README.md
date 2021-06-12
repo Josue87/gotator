@@ -60,3 +60,27 @@ gotator -sub domains.txt -perm permutations.txt -depth 3 -numbers 10 -md | sort 
 ```
 
 If you are compiling locally don't forget the ./ in front of your binary!
+
+# Example
+
+We have the following lists:
+
+![image](https://user-images.githubusercontent.com/16885065/121774669-c1f2c800-cb83-11eb-8796-2e9fc69d12eb.png)
+
+In the first example we mutate on the specified subdomain
+
+![image](https://user-images.githubusercontent.com/16885065/121774690-e353b400-cb83-11eb-8197-2c26c4bb4ad3.png)
+
+In the following example we instruct Gotator to extract possible domains from the subdomains with -md:
+
+![image](https://user-images.githubusercontent.com/16885065/121774726-0a11ea80-cb84-11eb-9373-c49c1a3fad63.png)
+
+You can see that example.com is taken into account. Now an example with a list of permutations containing *test100demo* and we give it the argument -numbers 3:
+
+![image](https://user-images.githubusercontent.com/16885065/121774817-6b39be00-cb84-11eb-8a5e-29954ed6f9ae.png)
+
+Finally, it is possible to see a greater mutation depth and also specify the prefixes parameter (which adds a small mutation list).
+
+![image](https://user-images.githubusercontent.com/16885065/121774834-8e646d80-cb84-11eb-9ea1-bebd7dff003b.png)
+
+The last example shows only part of the output.

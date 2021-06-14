@@ -91,18 +91,18 @@ We have the following lists:
 
 In the first example we mutate on the specified subdomain
 
-![image](https://user-images.githubusercontent.com/16885065/121774690-e353b400-cb83-11eb-8197-2c26c4bb4ad3.png)
+![image](https://user-images.githubusercontent.com/16885065/121939391-46dd0d80-cd4d-11eb-8bb4-598f66148d6a.png)
 
 In the following example we instruct Gotator to extract possible domains from the subdomains with -md:
 
-![image](https://user-images.githubusercontent.com/16885065/121774726-0a11ea80-cb84-11eb-9373-c49c1a3fad63.png)
-
+![image](https://user-images.githubusercontent.com/16885065/121939505-5fe5be80-cd4d-11eb-842f-c60ac32ebc4a.png)
+ 
 You can see that `example.com` is taken into account. Now an example with a list of permutations containing **test100demo** and we give it the argument -numbers 3:
 
-![image](https://user-images.githubusercontent.com/16885065/121774817-6b39be00-cb84-11eb-8a5e-29954ed6f9ae.png)
-
+![image](https://user-images.githubusercontent.com/16885065/121939803-b2bf7600-cd4d-11eb-9363-ee60684cb91a.png)
+ 
 Finally, it is possible to see a greater mutation depth and also specify the prefixes parameter (which adds a small mutation list).
 
-![image](https://user-images.githubusercontent.com/16885065/121774834-8e646d80-cb84-11eb-9ea1-bebd7dff003b.png)
+![image](https://user-images.githubusercontent.com/16885065/121939200-07162600-cd4d-11eb-9996-6b7b3eb56d0a.png)
 
 The last example shows only part of the output.

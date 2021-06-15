@@ -38,34 +38,32 @@ If you are only interested in using the program:
 
 Gotator has the following features for permutation:
 
-* 1 - Checks that it is a domain taking into account ccSLDs to avoid going out of scope (`example.com`, `example.com.mx`, etc.).
-* 2 - Permute numbers up and down [**-numbers <uint>**], for example:
-  *  We have to permute 10 and in numbers 3, as a result we will have between 7 and 13.
-  *  If we have dev1 and in numbers 3, we will see dev0, dev1, dev2, dev3, and dev3 (avoiding negative numbers).
-* 3 - Gotator has 3 levels of depth [**-depth <uint>**]: 
-  * If 1 is specified, to permute test on `example.com`, we will have `test.example.com`.
-  *  If set to 2 and we have to permute dev and demo on `example.com`, we can get `dev.demo.example.com` or `demo-dev.example.com`.
-* 4 - Control and reduce duplicates:
-   * If we have `test.example.com` and in the next permutation we have test again, it is ignored.
-   * If we have `testing.example.com` and test comes up, when matching test it will be joined with . and -, avoiding `testtesting.example.com`
-   * If we have `100.example.com` and it gets 90 to permute, the permutation is ignored.
-* 5 - From the subdomains within the target, for example `demo210.example.com`, we get the value demo210 and add it to the permutations.
-* 6 - Mode to "swap" domains, i.e. if the target is `tech.example.com`, it will be added as target `example.com` [**-md**].
-* 7 - Option to add permutations defined in gotator [**-prefixes**].
+* Checks domain and TLD analyzing ccSLDs to avoid going out of scope (`example.com`, `example.com.mx`, etc.).
+* Permute numbers up and down [**-numbers <uint>**], for example:
+  *  Target subdomain is 10 and numbers flag is set to 3 [`-numbers 3`], as a result we will have between 7 and 13.
+  *  Target subdomain is dev1 and numbers flag is set to 3 [`-numbers 3`], we will see dev0, dev1, dev2, dev3, and dev4 (avoiding negative numbers).
+* Gotator has 3 levels of depth [**-depth <uint>**]: 
+  * If depth is set to 1, to permute `test` word on `example.com`, we will get `test.example.com`.
+  *  If depth is set to 2, and we have to permute `dev` and `demo` on `example.com`, we will obtain `dev.demo.example.com` or `demo-dev.example.com` apart from `demo.example.com` and `dev.example.com`. Depth level 3 is an extension of this example.
+* Control and reduce duplicates:
+  *  If we have `test.example.com` and the next permutation will be `test` again, it is ignored.
+  *  If we have `testing.example.com` and `test` comes up, when matching `test` it will be joined with . and -, avoiding `testtesting.example.com`
+  *  If we have `100.example.com` and it gets `90` to permute, the permutation is ignored as it already has a number permutation feature.
+* For the subdomains within the target, for example `demo210.example.com`, we get the value `demo210` and add it to the permutations list.
+* Mode to "swap" domains, i.e. if the target is `dev.tech.example.com`, it will be added as target `tech.example.com` and `example.com` [**-md**].
+* Option to add default permutations list defined in gotator [**-prefixes**].
 
 
 # Options
 
-The options that can be used to launch the tool:
+The flags that can be used to launch the tool:
 
-* **sub <string>**: List of domains to be swapped.
-* **perm <string>**: List of permutations.
-* **depth <uint>**: Specify the depth (Between 1 and 3) - Default 1.
-* **numbers <uint>**: Specifies the number of iterations to the numbers found in the permutations (up and down). Default 0 Skip!
-* **prefixes**: Adding default gotator prefixes to permutations. If no perm list is specified, the default list is used. If perm is specified with this flag you merge the permutations.
-* **md**: Extract domains and subdomains from subdomains found in the list 'sub'
-
-Only the first option is mandatory.
+* **sub \<string\>**: List of domains to be swapped. **This flag is mandatory**. Ex: -sub subdomains.txt
+* **perm \<string\>**: List of permutations. Ex: -perm permutations.txt
+* **depth \<uint\>**: Specify the depth (Between 1 and 3) - Default 1. Ex: -depth 2
+* **numbers \<uint\>**: Specifies the number of iterations to the numbers found in the permutations (up and down). Default 0 Skip!. Ex: -numbers 10
+* **prefixes**: Adding default gotator prefixes to permutations. If no perm list is specified, the default list is used. If perm is specified with this flag you merge the permutations. Ex: -prefixes
+* **md**: Extract domains and subdomains from subdomains found in the list 'sub'. Ex: -md
 
 # How to use
 
@@ -106,3 +104,27 @@ Finally, it is possible to see a greater mutation depth and also specify the pre
 ![image](https://user-images.githubusercontent.com/16885065/121939200-07162600-cd4d-11eb-9996-6b7b3eb56d0a.png)
 
 The last example shows only part of the output.
+ 
+ # Disclaimer
+
+This tool can generate huge size files and some duplicates, we encourage to filter the output with `unique` or `sort -u` and take care of `depth` flag due to the size output (it's easy to generate files > **10 GB**). Keep in mind piped output to other tools requires the tool processing the whole output at once (sort, unique).
+
+- Examples:
+
+```
+# Filter output by size
+gotator -sub subs.txt -perm perm.txt -depth 2 -numbers 5 -md | head -c 1G > output1G.txt
+
+# Filter output by lines
+gotator -sub subs.txt -perm perm.txt -depth 3 -numbers 20 | head -n 100000 > output100Klines.txt
+
+# Sort unique lines
+gotator -sub subs.txt -perm perm.txt -depth 2 -numbers 10 -prefixes | sort -u > outputSortUnique.txt
+
+# Unique lines 
+gotator -sub subs.txt -perm perm.txt -depth 3 | unique > outputUnique.txt
+
+# Sort unique with limit size
+gotator -sub subs.txt -perm perm.txt -prefixes | head -c 1G | sort -u > output1GSortedUnique.txt
+
+```

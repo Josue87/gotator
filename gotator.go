@@ -78,7 +78,7 @@ func getJoins(domain string, perm string, firstTime bool) []string {
 		firstElement := strings.Split(domain, ".")[0]
 		if firstElement == perm {
 			joins = []string{}
-		} else if strings.Contains(firstElement, perm) { // We don't want testtest.example.com or similar
+		} else if len(perm) >= 4 && strings.HasPrefix(firstElement, perm) { // We don't want testtest.example.com or similar
 			joins = []string{".", "-"}
 		} else {
 			// Remove numbers to chek
@@ -93,11 +93,8 @@ func getJoins(domain string, perm string, firstTime bool) []string {
 			}
 			if aux1 == aux2 {
 				joins = []string{}
-			} else if strings.Contains(aux1, aux2) {
-				joins = []string{".", "-"}
 			}
 		}
-
 	}
 	return joins
 }
@@ -112,6 +109,16 @@ func permutatorWorker(tracker2 chan empty, domain string, permutationsChain chan
 			newSubDomain := perm + j + domain
 			fmt.Println(newSubDomain)
 			permutator(newSubDomain, permutations, depth-1, false)
+		}
+		if depth == 1 && firtstTime { // First iteration joins permutation word in the back
+			if !isDomain(domain) && !isCCSLDDomain(domain) {
+				domSplit := strings.Split(domain, ".")
+				firstElement := domSplit[0]
+				newSubDomain := firstElement + perm + "." + strings.Join(domSplit[1:], ".")
+				fmt.Println(newSubDomain)
+				newSubDomain = firstElement + "-" + perm + "." + strings.Join(domSplit[1:], ".")
+				fmt.Println(newSubDomain)
+			}
 		}
 	}
 	var e empty

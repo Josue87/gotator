@@ -1,6 +1,6 @@
 [![Go version](https://img.shields.io/badge/go-v1.16-blue)](https://golang.org/dl/#stable)
 ![License](https://img.shields.io/badge/license-GNU-green.svg?style=square&logo=gnu)
-![Version](https://img.shields.io/badge/version-0.4b-yellow.svg?style=square)
+![Version](https://img.shields.io/badge/version-0.5b-yellow.svg?style=square)
 [![Author](https://img.shields.io/badge/author-@JosueEncinar-orange.svg?style=square&logo=twitter)](https://twitter.com/JosueEncinar)
 [![Tester](https://img.shields.io/badge/tester-@Six2dez1-orange.svg?style=square&logo=twitter)](https://twitter.com/six2dez1)
 
@@ -45,10 +45,11 @@ Gotator has the following features for permutation:
 * Gotator has 3 levels of depth [**-depth <uint>**]: 
   * If depth is set to 1, to permute `test` word on `example.com`, we will get `test.example.com`.
   *  If depth is set to 2, and we have to permute `dev` and `demo` on `example.com`, we will obtain `dev.demo.example.com` or `demo-dev.example.com` apart from `demo.example.com` and `dev.example.com`. Depth level 3 is an extension of this example.
-* Control and reduce duplicates:
+* Control and reduce duplicates (due to the high number of lines generated, the objective here is to reduce as much as possible the domains with almost null possibilities to exist):
   *  If we have `test.example.com` and the next permutation will be `test` again, it is ignored.
   *  If we have `testing.example.com` and `test` comes up, when matching `test` it will be joined with . and -, avoiding `testtesting.example.com`
   *  If we have `100.example.com` and it gets `90` to permute, the permutation is ignored as it already has a number permutation feature.
+  * If we have test100.example.com and it gets test to permute, we remove numbers and test==test so the permutation is ignored as it already has something very similar.
 * For the subdomains within the target, for example `demo210.example.com`, we get the value `demo210` and add it to the permutations list.
 * Mode to "swap" domains, i.e. if the target is `dev.tech.example.com`, it will be added as target `tech.example.com` and `example.com` [**-md**].
 * Option to add default permutations list defined in gotator [**-prefixes**].
@@ -74,10 +75,10 @@ gotator -sub domains.txt -perm permutations.txt -depth 2 -numbers 5 > output.txt
 To filter the result and remove possible duplicates:
 
 ```
-gotator -sub domains.txt -perm permutations.txt -depth 3 -numbers 10 -md | -uniq > output2.txt
+gotator -sub domains.txt -perm permutations.txt -depth 3 -numbers 10 -md | uniq > output2.txt
 ```
 
-Change uniq to sort -u of the previous command if you want to sort them.
+Change `uniq` to `sort -u` of the previous command if you want to sort them. (Not recommended due to time)
 
 **Note**: If you are compiling locally don't forget the ./ in front of your binary!
 
@@ -107,7 +108,7 @@ The last example shows only part of the output.
  
  # Disclaimer
 
-This tool can generate huge size files and some duplicates, we encourage to filter the output with `unique` or `sort -u` and take care of `depth` flag due to the size output (it's easy to generate files > **10 GB**). Keep in mind piped output to other tools requires the tool processing the whole output at once (sort, unique).
+This tool can generate huge size files and some duplicates, we encourage to filter the output with `uniq` or `sort -u` and take care of `depth` flag due to the size output (it's easy to generate files > **10 GB**). Keep in mind piped output to other tools requires the tool processing the whole output at once (sort, uniq).
 
 - Examples:
 
@@ -122,9 +123,11 @@ gotator -sub subs.txt -perm perm.txt -depth 3 -numbers 20 | head -n 100000 > out
 gotator -sub subs.txt -perm perm.txt -depth 2 -numbers 10 -prefixes | sort -u > outputSortUnique.txt
 
 # Unique lines 
-gotator -sub subs.txt -perm perm.txt -depth 3 | unique > outputUnique.txt
+gotator -sub subs.txt -perm perm.txt -depth 3 | uniq > outputUnique.txt
 
 # Sort unique with limit size
 gotator -sub subs.txt -perm perm.txt -prefixes | head -c 1G | sort -u > output1GSortedUnique.txt
 
 ```
+
+**Note**: Examples have been given using `sort -u`, that will slow down the generation of results. There is no need to sort the results, it is recommended to use uniq or anew.

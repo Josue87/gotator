@@ -22,7 +22,7 @@ func banner() {
 ▐                  █         ▐   ▐   █                  ▐     ▐   												   
 																																																		
 	> By @JosueEncinar
-	> Version 0.4b
+	> Version 0.5b
 	> Domain/subdomain permutator
 `
 	println(banner)
@@ -261,10 +261,41 @@ func permutatorNumbers(permutations *[]string, permutation string, dataToReplace
 	}()
 }
 
-func main() {
-	prefixes := []string{"qa", "dev", "dev1", "demo", "test", "prueba", "mysql",
-		"pre", "pro", "prod", "cuali", "www", "ftp", "smtp", "mail"}
+
+func StartGotator(flDomains string, flPermutations string, flDepth uint, flIterateNumbers uint, 
+	flPrefixes bool, flextractDomains bool){
 	threads := 10
+	prefixes := []string{"qa", "dev", "dev1", "demo", "test", "prueba", "mysql",
+	"pre", "pro", "prod", "cuali", "www", "ftp", "smtp", "mail"}
+	intDepth := configureDepth(flDepth)
+
+	domains := make(chan string, threads)
+	tracker := make(chan empty)
+
+	auxiliarDomains := generateDomains(flDomains, flextractDomains)
+	if len(auxiliarDomains) <= 0 {
+		println("[-] No valid domains/subdomains found")
+		os.Exit(1)
+	}
+	permutations := generatePermutations(flPermutations, flPrefixes, prefixes, flIterateNumbers, auxiliarDomains)
+
+	for i := 0; i < threads; i++ {
+		go worker(tracker, domains, permutations, intDepth)
+	}
+
+	for _, domain := range auxiliarDomains {
+		dom := fmt.Sprintf("%s", domain)
+		fmt.Println(dom)
+		domains <- dom
+	}
+
+	close(domains)
+	for i := 0; i < threads; i++ {
+		<-tracker
+	}
+}
+
+func main() {
 	var (
 		flDomains        = flag.String("sub", "", "List of domains to be swapped (1 per line)")
 		flPermutations   = flag.String("perm", "", "List of permutations (1 per line)")
@@ -282,31 +313,6 @@ func main() {
 
 	banner()
 	println("[i] Working in progress")
+	StartGotator(*flDomains, *flPermutations, *flDepth, *flIterateNumbers, *flPrefixes, *flextractDomains)
 
-	intDepth := configureDepth(*flDepth)
-
-	domains := make(chan string, threads)
-	tracker := make(chan empty)
-
-	auxiliarDomains := generateDomains(*flDomains, *flextractDomains)
-	if len(auxiliarDomains) <= 0 {
-		println("[-] No valid domains/subdomains found")
-		os.Exit(1)
-	}
-	permutations := generatePermutations(*flPermutations, *flPrefixes, prefixes, *flIterateNumbers, auxiliarDomains)
-
-	for i := 0; i < threads; i++ {
-		go worker(tracker, domains, permutations, intDepth)
-	}
-
-	for _, domain := range auxiliarDomains {
-		dom := fmt.Sprintf("%s", domain)
-		fmt.Println(dom)
-		domains <- dom
-	}
-
-	close(domains)
-	for i := 0; i < threads; i++ {
-		<-tracker
-	}
 }

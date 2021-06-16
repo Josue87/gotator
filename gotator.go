@@ -8,9 +8,8 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 )
-
-type empty struct{}
 
 func banner() {
 	banner := `
@@ -22,7 +21,7 @@ func banner() {
 ▐                  █         ▐   ▐   █                  ▐     ▐   												   
 																																																		
 	> By @JosueEncinar
-	> Version 0.5b
+	> Version 0.6b
 	> Domain/subdomain permutator
 `
 	println(banner)
@@ -54,6 +53,19 @@ func containsElement(s []string, str string) bool {
 	return false
 }
 
+func removeNumbers(string1 string, string2 string) (string, string) {
+	pattern := regexp.MustCompile("\\d+")
+	aux1 := string1
+	aux2 := string2
+	for _, data := range pattern.FindStringSubmatch(string1) {
+		aux1 = strings.Replace(aux1, data, "", -1)
+	}
+	for _, data := range pattern.FindStringSubmatch(string2) {
+		aux2 = strings.Replace(aux2, data, "", -1)
+	}
+	return aux1, aux2
+}
+
 func getJoins(domain string, perm string, firstTime bool) []string {
 	joins := []string{".", "-", ""}
 	allNumbers := []string{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"}
@@ -82,15 +94,7 @@ func getJoins(domain string, perm string, firstTime bool) []string {
 			joins = []string{".", "-"}
 		} else {
 			// Remove numbers to chek
-			pattern := regexp.MustCompile("\\d+")
-			aux1 := firstElement
-			aux2 := perm
-			for _, data := range pattern.FindStringSubmatch(domain) {
-				aux1 = strings.Replace(aux1, data, "", -1)
-			}
-			for _, data := range pattern.FindStringSubmatch(perm) {
-				aux2 = strings.Replace(aux2, data, "", -1)
-			}
+			aux1, aux2 := removeNumbers(firstElement, perm)
 			if aux1 == aux2 {
 				joins = []string{}
 			}
@@ -99,8 +103,11 @@ func getJoins(domain string, perm string, firstTime bool) []string {
 	return joins
 }
 
-func permutatorWorker(tracker2 chan empty, domain string, permutationsChain chan string, depth uint, permutations []string, firtstTime bool) {
-	for perm := range permutationsChain {
+func permutator(domain string, permutations []string, depth uint, firtstTime bool) {
+	if depth < 1 {
+		return
+	}
+	for _, perm := range permutations {
 		if perm == "" {
 			continue
 		}
@@ -114,42 +121,23 @@ func permutatorWorker(tracker2 chan empty, domain string, permutationsChain chan
 			if !isDomain(domain) && !isCCSLDDomain(domain) {
 				domSplit := strings.Split(domain, ".")
 				firstElement := domSplit[0]
-				newSubDomain := firstElement + perm + "." + strings.Join(domSplit[1:], ".")
-				fmt.Println(newSubDomain)
-				newSubDomain = firstElement + "-" + perm + "." + strings.Join(domSplit[1:], ".")
-				fmt.Println(newSubDomain)
+				aux1, aux2 := removeNumbers(firstElement, perm)
+				if aux1 != aux2 {
+					joins = []string{}
+					newSubDomain := firstElement + perm + "." + strings.Join(domSplit[1:], ".")
+					fmt.Println(newSubDomain)
+					newSubDomain = firstElement + "-" + perm + "." + strings.Join(domSplit[1:], ".")
+					fmt.Println(newSubDomain)
+				}
 			}
 		}
 	}
-	var e empty
-	tracker2 <- e
 }
 
-func permutator(domain string, permutations []string, depth uint, firtstTime bool) {
-	if depth < 1 {
-		return
-	}
-	threads := 20
-	permutationsChain := make(chan string, threads)
-	tracker2 := make(chan empty)
-	for i := 0; i < threads; i++ {
-		go permutatorWorker(tracker2, domain, permutationsChain, depth, permutations, firtstTime)
-	}
-	for _, perm := range permutations {
-		permutationsChain <- fmt.Sprintf("%s", perm)
-	}
-	close(permutationsChain)
-	for i := 0; i < threads; i++ {
-		<-tracker2
-	}
-}
-
-func worker(tracker chan empty, subdomains chan string, permutations []string, depth uint) {
-	for subdomain := range subdomains {
-		permutator(subdomain, permutations, depth, true)
-	}
-	var e empty
-	tracker <- e
+func worker(domain string, permutations []string, depth uint, wg *sync.WaitGroup) {
+	defer wg.Done()
+	fmt.Println(domain)
+	permutator(domain, permutations, depth, true)
 }
 
 func configureDepth(depth uint) uint {
@@ -261,16 +249,11 @@ func permutatorNumbers(permutations *[]string, permutation string, dataToReplace
 	}()
 }
 
-
-func StartGotator(flDomains string, flPermutations string, flDepth uint, flIterateNumbers uint, 
-	flPrefixes bool, flextractDomains bool){
-	threads := 10
+func StartGotator(flDomains string, flPermutations string, flDepth uint, flIterateNumbers uint,
+	flPrefixes bool, flextractDomains bool) {
 	prefixes := []string{"qa", "dev", "dev1", "demo", "test", "prueba", "mysql",
-	"pre", "pro", "prod", "cuali", "www", "ftp", "smtp", "mail"}
+		"pre", "pro", "prod", "cuali", "www", "ftp", "smtp", "mail"}
 	intDepth := configureDepth(flDepth)
-
-	domains := make(chan string, threads)
-	tracker := make(chan empty)
 
 	auxiliarDomains := generateDomains(flDomains, flextractDomains)
 	if len(auxiliarDomains) <= 0 {
@@ -278,21 +261,12 @@ func StartGotator(flDomains string, flPermutations string, flDepth uint, flItera
 		os.Exit(1)
 	}
 	permutations := generatePermutations(flPermutations, flPrefixes, prefixes, flIterateNumbers, auxiliarDomains)
-
-	for i := 0; i < threads; i++ {
-		go worker(tracker, domains, permutations, intDepth)
-	}
-
+	var wg sync.WaitGroup
 	for _, domain := range auxiliarDomains {
-		dom := fmt.Sprintf("%s", domain)
-		fmt.Println(dom)
-		domains <- dom
+		wg.Add(1)
+		go worker(domain, permutations, intDepth, &wg)
 	}
-
-	close(domains)
-	for i := 0; i < threads; i++ {
-		<-tracker
-	}
+	wg.Wait()
 }
 
 func main() {
@@ -303,6 +277,7 @@ func main() {
 		flIterateNumbers = flag.Uint("numbers", 0, "Permute the numbers found in the list of permutations")
 		flPrefixes       = flag.Bool("prefixes", false, "Adding gotator prefixes to permutations")
 		flextractDomains = flag.Bool("md", false, "Extract domains and subdomains from subdomains found in the list 'sub'")
+		flSilent         = flag.Bool("silent", false, "Gotator banner is not displayed")
 	)
 	flag.Parse()
 
@@ -310,9 +285,10 @@ func main() {
 		fmt.Println("-sub is required")
 		os.Exit(1)
 	}
+	if !*flSilent {
+		banner()
+		println("[i] Working in progress\n")
+	}
 
-	banner()
-	println("[i] Working in progress")
 	StartGotator(*flDomains, *flPermutations, *flDepth, *flIterateNumbers, *flPrefixes, *flextractDomains)
-
 }

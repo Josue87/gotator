@@ -11,7 +11,7 @@
     <img src="https://img.shields.io/badge/license-GNU-green.svg?style=square&logo=gnu">
   </a>
      <a href="https://github.com/Josue87/gotator">
-    <img src="https://img.shields.io/badge/version-0.6b-yellow.svg?style=square&logo=github">
+    <img src="https://img.shields.io/badge/version-0.7b-yellow.svg?style=square&logo=github">
   </a>
    <a href="https://twitter.com/JosueEncinar">
     <img src="https://img.shields.io/badge/author-@JosueEncinar-orange.svg?style=square&logo=twitter">
@@ -96,6 +96,8 @@ The flags that can be used to launch the tool:
 | **prefixes** | bool | no | Adding default gotator prefixes to permutations. If not configured perm is used by default. If perm is specified with this flag you merge the permutations. | `-prefixes` |
 | **md** | bool | no | Extract 'previous' domains and subdomains from subdomains found in the list 'sub'. | `-md` |
 | **silent** | bool | no | Gotator banner is not displayed. | `-silent` |
+| **t** | uint | no | Max Go routines (Default 10). Note: Data is painted by the console, threads may increase processing time | `-t 100` |
+**version** | bool | no | Show Gotator version | `-version` |
 
 # 👾 Usage
 

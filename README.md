@@ -131,14 +131,18 @@ In the following example we instruct Gotator to extract possible domains from th
  
 You can see that `example.com` is taken into account. Now an example with a list of permutations containing **test100demo** and we give it the argument -numbers 3:
 
-![image](https://user-images.githubusercontent.com/16885065/122591076-b8c19980-d062-11eb-89a8-79e9b3040463.png)
+![image](https://user-images.githubusercontent.com/16885065/124384565-2e1fa200-dcd2-11eb-812c-68019a50e3ca.png)
  
-Finally, it is possible to see a greater mutation depth and also specify the prefixes parameter (which adds a small mutation list).
+It is possible to see a greater mutation depth and also specify the prefixes parameter (which adds a small mutation list).
 
 ![image](https://user-images.githubusercontent.com/16885065/121939200-07162600-cd4d-11eb-9996-6b7b3eb56d0a.png)
 
 The last example shows only part of the output.
+
+Finally, an example with silent mode and different depths with output redirection to a file.
  
+![image](https://user-images.githubusercontent.com/16885065/124384694-c87fe580-dcd2-11eb-8b3e-cd91a9d0d559.png)
+
  # 👉 Disclaimer
 
 This tool can generate huge size files and some duplicates, we encourage to filter the output with `uniq` or `sort -u` and take care of `depth` flag due to the size output (it's easy to generate files > **10 GB**). Keep in mind piped output to other tools requires the tool processing the whole output at once (sort, uniq).

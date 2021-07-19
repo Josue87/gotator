@@ -52,13 +52,14 @@ func isCCSLDDomain(domain string) bool {
 }
 
 func containsElement(s []string, str string) bool {
-	//https://freshman.tech/snippets/go/check-if-slice-contains-element/
+	existElement := false
 	for _, v := range s {
 		if v == str {
-			return true
+			existElement = true
+			break
 		}
 	}
-	return false
+	return existElement
 }
 
 func removeNumbers(string1 string, string2 string) (string, string) {
@@ -74,27 +75,30 @@ func removeNumbers(string1 string, string2 string) (string, string) {
 	return aux1, aux2
 }
 
-func getJoins(domain string, perm string, firstTime bool) []string {
+func getJoins(domain string, perm string, firstTime bool, minimizeDuplicates bool) []string {
 	joins := []string{".", "-", ""}
 	allNumbers := []string{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"}
 	numberPrefix := false
-	for _, n := range allNumbers {
-		if strings.HasPrefix(domain, n) {
-			numberPrefix = true
-			break
+	if minimizeDuplicates {
+		for _, n := range allNumbers {
+			if strings.HasPrefix(domain, n) {
+				numberPrefix = true
+				break
+			}
 		}
 	}
+
 	// It is only possible to be a domain the first time (firstTime reduces comopopulations at each step)
 	if firstTime && (isDomain(domain) || isCCSLDDomain(domain)) {
 		joins = []string{"."}
 	} else if numberPrefix {
 		for _, n := range allNumbers {
 			if strings.HasSuffix(perm, n) {
-				joins = []string{} // We don't want 99 permutation and a domain like 100.test.com
+				joins = []string{} // We don't want 99 permutation and a subdomain like 100.test.com
 				break
 			}
 		}
-	} else {
+	} else if minimizeDuplicates {
 		firstElement := strings.Split(domain, ".")[0]
 		if firstElement == perm {
 			joins = []string{}
@@ -111,7 +115,7 @@ func getJoins(domain string, perm string, firstTime bool) []string {
 	return joins
 }
 
-func permutator(domain string, permutations []string, depth uint, firtstTime bool) {
+func permutator(domain string, permutations []string, depth uint, firtstTime bool, minimizeDuplicates bool) {
 	if depth < 1 {
 		return
 	}
@@ -119,11 +123,11 @@ func permutator(domain string, permutations []string, depth uint, firtstTime boo
 		if perm == "" {
 			continue
 		}
-		joins := getJoins(domain, perm, firtstTime)
+		joins := getJoins(domain, perm, firtstTime, minimizeDuplicates)
 		for _, j := range joins {
 			newSubDomain := perm + j + domain
 			fmt.Println(newSubDomain)
-			permutator(newSubDomain, permutations, depth-1, false)
+			permutator(newSubDomain, permutations, depth-1, false, minimizeDuplicates)
 		}
 		if depth == 1 && firtstTime { // First iteration joins permutation word in the back
 			if !isDomain(domain) && !isCCSLDDomain(domain) {
@@ -142,9 +146,9 @@ func permutator(domain string, permutations []string, depth uint, firtstTime boo
 	}
 }
 
-func worker(domain string, permutations []string, depth uint) {
+func worker(domain string, permutations []string, depth uint, minimizeDuplicates bool) {
 	fmt.Println(domain)
-	permutator(domain, permutations, depth, true)
+	permutator(domain, permutations, depth, true, minimizeDuplicates)
 }
 
 func configureDepth(depth uint) uint {
@@ -256,7 +260,7 @@ func permutatorNumbers(permutations *[]string, permutation string, dataToReplace
 }
 
 func StartGotator(flDomains string, flPermutations string, flDepth uint, flIterateNumbers uint,
-	flPrefixes bool, flextractDomains bool, flThreads uint) {
+	flPrefixes bool, flextractDomains bool, flThreads uint, flminimizeDuplicates bool) {
 	prefixes := []string{"qa", "dev", "dev1", "demo", "test", "prueba", "mysql",
 		"pre", "pro", "prod", "cuali", "www", "ftp", "smtp", "mail"}
 	intDepth := configureDepth(flDepth)
@@ -278,7 +282,7 @@ func StartGotator(flDomains string, flPermutations string, flDepth uint, flItera
 		guardThreads <- struct{}{}
 		wg.Add(1)
 		go func(d string) {
-			worker(d, permutations, intDepth)
+			worker(d, permutations, intDepth, flminimizeDuplicates)
 			<-guardThreads
 			wg.Done()
 		}(domain)
@@ -287,17 +291,18 @@ func StartGotator(flDomains string, flPermutations string, flDepth uint, flItera
 }
 
 func main() {
-	VERSION = "0.7b"
+	VERSION = "1.0"
 	var (
-		flDomains        = flag.String("sub", "", "List of domains to be swapped (1 per line)")
-		flPermutations   = flag.String("perm", "", "List of permutations (1 per line)")
-		flDepth          = flag.Uint("depth", 1, "Specify the depth (Between 1 and 3)")
-		flIterateNumbers = flag.Uint("numbers", 0, "Permute the numbers found in the list of permutations")
-		flPrefixes       = flag.Bool("prefixes", false, "Adding gotator prefixes to permutations")
-		flextractDomains = flag.Bool("md", false, "Extract domains and subdomains from subdomains found in 'sub' list")
-		flSilent         = flag.Bool("silent", false, "Gotator banner is not displayed")
-		flThreads        = flag.Uint("t", 10, "Max Go routines")
-		flVersion        = flag.Bool("version", false, "Show Gotator version")
+		flDomains            = flag.String("sub", "", "List of domains to be swapped (1 per line) [Required]")
+		flPermutations       = flag.String("perm", "", "List of permutations (1 per line)")
+		flDepth              = flag.Uint("depth", 1, "Specify the depth (Between 1 and 3)")
+		flIterateNumbers     = flag.Uint("numbers", 0, "Permute the numbers found in the list of permutations")
+		flPrefixes           = flag.Bool("prefixes", false, "Adding gotator prefixes to permutations")
+		flextractDomains     = flag.Bool("md", false, "Extract domains and subdomains from subdomains found in 'sub' list")
+		flminimizeDuplicates = flag.Bool("mindup", false, "Set this flag to minimize duplicates. (For heavy workloads, it is recommended to activate this flag)")
+		flSilent             = flag.Bool("silent", false, "Gotator banner is not displayed")
+		flThreads            = flag.Uint("t", 10, "Max Go routines")
+		flVersion            = flag.Bool("version", false, "Show Gotator version")
 	)
 	flag.Parse()
 
@@ -316,5 +321,6 @@ func main() {
 		println("[i] Working in progress\n")
 	}
 
-	StartGotator(*flDomains, *flPermutations, *flDepth, *flIterateNumbers, *flPrefixes, *flextractDomains, *flThreads)
+	StartGotator(*flDomains, *flPermutations, *flDepth, *flIterateNumbers, *flPrefixes,
+		*flextractDomains, *flThreads, *flminimizeDuplicates)
 }

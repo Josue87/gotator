@@ -11,7 +11,7 @@
     <img src="https://img.shields.io/badge/license-GNU-green.svg?style=square&logo=gnu">
   </a>
      <a href="https://github.com/Josue87/gotator">
-    <img src="https://img.shields.io/badge/version-0.7b-yellow.svg?style=square&logo=github">
+    <img src="https://img.shields.io/badge/version-1.0-yellow.svg?style=square&logo=github">
   </a>
    <a href="https://twitter.com/JosueEncinar">
     <img src="https://img.shields.io/badge/author-@JosueEncinar-orange.svg?style=square&logo=twitter">
@@ -72,7 +72,7 @@ To upgrade the version add the **-u** parameter to the installation command.
 * Gotator has 3 levels of depth [**-depth <uint>**]: 
   * If depth is set to 1 (default mode), to permute `test` word on `example.com`, we will get `test.example.com`. With this option if subdomain target is `tech.example.com` and permutation is `test` we also interchange the position for the permutation "-" and "", obtaining results such as `techtest.example.com` and `tech-test.example.com` (check example 1).
   *  If depth is set to 2, and we have to permute `dev` and `demo` on `example.com`, we will obtain `dev.demo.example.com` or `demo-dev.example.com` apart from `demo.example.com` and `dev.example.com`. Depth level 3 is an extension of this example.
-* Control and reduce duplicates (due to the high number of lines generated, the objective here is to reduce as much as possible the domains with almost null possibilities to exist):
+* Using `-mindup` flag you can control and reduce duplicates (due to the high number of lines generated, the objective here is to reduce as much as possible the domains with almost null possibilities to exist):
   *  If we have `test.example.com` and the next permutation will be `test` again, it is ignored.
   *  If we have `testing.example.com` and `test` comes up, when matching `test` it will be joined with . and -, avoiding `testtesting.example.com`
   *  If we have `100.example.com` and it gets `90` to permute, the permutation is ignored as it already has a number permutation feature.
@@ -95,6 +95,7 @@ The flags that can be used to launch the tool:
 | **numbers** | uint | no | Configure the number of iterations to the numbers found in the permutations (up and down). Default 0 Skip!. | `-numbers 10` |
 | **prefixes** | bool | no | Adding default gotator prefixes to permutations. If not configured perm is used by default. If perm is specified with this flag you merge the permutations. | `-prefixes` |
 | **md** | bool | no | Extract 'previous' domains and subdomains from subdomains found in the list 'sub'. | `-md` |
+| **mindup** | bool | no | Set this flag to minimize duplicates. (For heavy workloads, it is recommended to activate this flag). | `-mindup` |
 | **silent** | bool | no | Gotator banner is not displayed. | `-silent` |
 | **t** | uint | no | Max Go routines (Default 10). Note: Data is painted by the console, threads may increase processing time | `-t 100` |
 **version** | bool | no | Show Gotator version | `-version` |
@@ -116,6 +117,8 @@ Change `uniq` to `sort -u` of the previous command if you want to sort them. (No
 **Note**: If you are compiling locally don't forget the ./ in front of your binary!
 
 # 🚀 Examples
+
+**Note**: The examples may correspond to earlier versions (where `-mindup` was not used).
 
 We have the following lists:
 
@@ -154,13 +157,13 @@ This tool can generate huge size files and some duplicates, we encourage to filt
 gotator -sub subs.txt -perm perm.txt -depth 2 -numbers 5 -md | head -c 1G > output1G.txt
 
 # Filter output by lines
-gotator -sub subs.txt -perm perm.txt -depth 3 -numbers 20 | head -n 100000 > output100Klines.txt
+gotator -sub subs.txt -perm perm.txt -depth 3 -mindup -numbers 20 | head -n 100000 > output100Klines.txt
 
 # Sort unique lines
-gotator -sub subs.txt -perm perm.txt -depth 2 -numbers 10 -prefixes | sort -u > outputSortUnique.txt
+gotator -sub subs.txt -perm perm.txt -depth 2 -mindup -numbers 10 -prefixes | sort -u > outputSortUnique.txt
 
 # Unique lines 
-gotator -sub subs.txt -perm perm.txt -depth 3 | uniq > outputUnique.txt
+gotator -sub subs.txt -perm perm.txt -depth 3 -mindup | uniq > outputUnique.txt
 
 # Sort unique with limit size
 gotator -sub subs.txt -perm perm.txt -prefixes | head -c 1G | sort -u > output1GSortedUnique.txt
@@ -168,3 +171,5 @@ gotator -sub subs.txt -perm perm.txt -prefixes | head -c 1G | sort -u > output1G
 ```
 
 **Note**: Examples have been given using `sort -u`, that will slow down the generation of results. There is no need to sort the results, it is recommended to use uniq or anew.
+
+**Notice**: This tool generates a lot of output information, it is recommended to use the `mindup` flag to reduce the number of lines.

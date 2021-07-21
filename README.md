@@ -69,15 +69,19 @@ To upgrade the version add the **-u** parameter to the installation command.
 * Permute numbers up and down [**-numbers <uint>**], for example:
   *  Target subdomain is 10 and numbers flag is set to 3 [`-numbers 3`], as a result we will have between 7 and 13.
   *  Target subdomain is dev1 and numbers flag is set to 3 [`-numbers 3`], we will see dev0, dev1, dev2, dev3, and dev4 (avoiding negative numbers).
+  * Target sudomain is `test10-demo2` and numbers flag is set to 1 [`-numbers 1`], among the results we will see `test11-demo2.example.com`, `test9-demo2.example.com`, `test10-demo3.example.com` or `test10-demo1.example.com`. (Only one number changes at a time).
 * Gotator has 3 levels of depth [**-depth <uint>**]: 
-  * If depth is set to 1 (default mode), to permute `test` word on `example.com`, we will get `test.example.com`. With this option if subdomain target is `tech.example.com` and permutation is `test` we also interchange the position for the permutation "-" and "", obtaining results such as `techtest.example.com` and `tech-test.example.com` (check example 1).
+  * If depth is set to 1 (default mode), to permute `test` word on `example.com`, we will get `test.example.com`. 
   *  If depth is set to 2, and we have to permute `dev` and `demo` on `example.com`, we will obtain `dev.demo.example.com` or `demo-dev.example.com` apart from `demo.example.com` and `dev.example.com`. Depth level 3 is an extension of this example.
 * Using `-mindup` flag you can control and reduce duplicates (due to the high number of lines generated, the objective here is to reduce as much as possible the domains with almost null possibilities to exist):
   *  If we have `test.example.com` and the next permutation will be `test` again, it is ignored.
   *  If we have `testing.example.com` and `test` comes up, when matching `test` it will be joined with . and -, avoiding `testtesting.example.com`
   *  If we have `100.example.com` and it gets `90` to permute, the permutation is ignored as it already has a number permutation feature.
   * If we have test100.example.com and it gets test to permute, we remove numbers and test==test so the permutation is ignored as it already has something very similar.
-* For the subdomains within the target, for example `demo210.example.com`, we get the value `demo210` and add it to the permutations list.
+* Using `adv` flag: 
+  * For the subdomains within the target, for example `demo210.example.com`, we get the value `demo210` and add it to the permutations list. If we have `test-dev.domain.com` then we add to permutations `test-dev`, `test` and `dev` (only if they are not already on the list).
+  * For permutation words, if gotator receives `demo-test` it adds `demo-test`, `demo` and `test` to the list.
+  * Only in **depth 1**. With this option if subdomain target is `tech.example.com` and permutation is `test` we also interchange the position for the permutation "-" and "", obtaining results such as `techtest.example.com` and `tech-test.example.com` (check example 1).
 * Mode to "swap" domains, i.e. if the target is `dev.tech.example.com`, it will be added as target `tech.example.com` and `example.com` [**-md**].
 * Option to add default permutations list defined in gotator [**-prefixes**].
 * Only the results are written to the standard output. Banner and messages are sent to the error output. So you can pipe the command.
@@ -95,6 +99,7 @@ The flags that can be used to launch the tool:
 | **numbers** | uint | no | Configure the number of iterations to the numbers found in the permutations (up and down). Default 0 Skip!. | `-numbers 10` |
 | **prefixes** | bool | no | Adding default gotator prefixes to permutations. If not configured perm is used by default. If perm is specified with this flag you merge the permutations. | `-prefixes` |
 | **md** | bool | no | Extract 'previous' domains and subdomains from subdomains found in the list 'sub'. | `-md` |
+| **adv** | bool | no | Advanced option. Generate permutations words with subdomains and words with -. And joins permutation word in the back (depth 1). | `-adv` |
 | **mindup** | bool | no | Set this flag to minimize duplicates. (For heavy workloads, it is recommended to activate this flag). | `-mindup` |
 | **silent** | bool | no | Gotator banner is not displayed. | `-silent` |
 | **t** | uint | no | Max Go routines (Default 10). Note: Data is painted by the console, threads may increase processing time | `-t 100` |

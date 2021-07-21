@@ -6,13 +6,18 @@ import (
 	"fmt"
 	"os"
 	"regexp"
-	"runtime"
 	"strconv"
 	"strings"
 	"sync"
 )
 
-var VERSION string
+var (
+	VERSION            string
+	ALLDOMAINS         []string
+	PERMUTATIONS       []string
+	MINIMIZEDUPLICATES bool
+	ADVANCEDOPTION     bool
+)
 
 func banner() {
 	colorReset := "\033[0m"
@@ -62,24 +67,20 @@ func containsElement(s []string, str string) bool {
 	return existElement
 }
 
-func removeNumbers(string1 string, string2 string) (string, string) {
+func removeNumbers(element string) string {
 	pattern := regexp.MustCompile("\\d+")
-	aux1 := string1
-	aux2 := string2
-	for _, data := range pattern.FindStringSubmatch(string1) {
-		aux1 = strings.Replace(aux1, data, "", -1)
+	aux := element
+	for _, data := range pattern.FindStringSubmatch(element) {
+		aux = strings.Replace(aux, data, "", -1)
 	}
-	for _, data := range pattern.FindStringSubmatch(string2) {
-		aux2 = strings.Replace(aux2, data, "", -1)
-	}
-	return aux1, aux2
+	return aux
 }
 
-func getJoins(domain string, perm string, firstTime bool, minimizeDuplicates bool) []string {
+func getJoins(domain string, perm string, firstTime bool) []string {
 	joins := []string{".", "-", ""}
 	allNumbers := []string{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"}
 	numberPrefix := false
-	if minimizeDuplicates {
+	if MINIMIZEDUPLICATES {
 		for _, n := range allNumbers {
 			if strings.HasPrefix(domain, n) {
 				numberPrefix = true
@@ -87,7 +88,6 @@ func getJoins(domain string, perm string, firstTime bool, minimizeDuplicates boo
 			}
 		}
 	}
-
 	// It is only possible to be a domain the first time (firstTime reduces comopopulations at each step)
 	if firstTime && (isDomain(domain) || isCCSLDDomain(domain)) {
 		joins = []string{"."}
@@ -98,7 +98,7 @@ func getJoins(domain string, perm string, firstTime bool, minimizeDuplicates boo
 				break
 			}
 		}
-	} else if minimizeDuplicates {
+	} else if MINIMIZEDUPLICATES {
 		firstElement := strings.Split(domain, ".")[0]
 		if firstElement == perm {
 			joins = []string{}
@@ -106,49 +106,58 @@ func getJoins(domain string, perm string, firstTime bool, minimizeDuplicates boo
 			joins = []string{".", "-"}
 		} else {
 			// Remove numbers to chek
-			aux1, aux2 := removeNumbers(firstElement, perm)
-			if aux1 == aux2 {
+			subdomainFirstElement := removeNumbers(firstElement)
+			newPermutation := removeNumbers(perm)
+			if subdomainFirstElement == newPermutation {
 				joins = []string{}
+			} else if strings.HasSuffix(subdomainFirstElement, newPermutation) {
+				joins = []string{"."}
 			}
 		}
 	}
 	return joins
 }
 
-func permutator(domain string, permutations []string, depth uint, firtstTime bool, minimizeDuplicates bool) {
+func permutator(domain string, depth uint, firtstTime bool) {
 	if depth < 1 {
 		return
 	}
-	for _, perm := range permutations {
+	for _, perm := range PERMUTATIONS {
 		if perm == "" {
 			continue
 		}
-		joins := getJoins(domain, perm, firtstTime, minimizeDuplicates)
+		joins := getJoins(domain, perm, firtstTime)
 		for _, j := range joins {
 			newSubDomain := perm + j + domain
-			fmt.Println(newSubDomain)
-			permutator(newSubDomain, permutations, depth-1, false, minimizeDuplicates)
+			if !containsElement(ALLDOMAINS, newSubDomain) {
+				fmt.Println(newSubDomain)
+				permutator(newSubDomain, depth-1, false)
+			}
 		}
-		if depth == 1 && firtstTime { // First iteration joins permutation word in the back
+		if depth == 1 && firtstTime && ADVANCEDOPTION { // First iteration joins permutation word in the back
 			if !isDomain(domain) && !isCCSLDDomain(domain) {
 				domSplit := strings.Split(domain, ".")
 				firstElement := domSplit[0]
-				aux1, aux2 := removeNumbers(firstElement, perm)
-				if aux1 != aux2 {
-					joins = []string{}
+				subdomainFirstElement := removeNumbers(firstElement)
+				newPermutation := removeNumbers(perm)
+				if subdomainFirstElement != newPermutation && !strings.HasSuffix(subdomainFirstElement, newPermutation) {
 					newSubDomain := firstElement + perm + "." + strings.Join(domSplit[1:], ".")
-					fmt.Println(newSubDomain)
+					if !containsElement(ALLDOMAINS, newSubDomain) {
+						fmt.Println(newSubDomain)
+					}
 					newSubDomain = firstElement + "-" + perm + "." + strings.Join(domSplit[1:], ".")
-					fmt.Println(newSubDomain)
+					if !containsElement(ALLDOMAINS, newSubDomain) {
+						fmt.Println(newSubDomain)
+					}
 				}
 			}
 		}
 	}
 }
 
-func worker(domain string, permutations []string, depth uint, minimizeDuplicates bool) {
+func worker(domain string, depth uint) {
 	fmt.Println(domain)
-	permutator(domain, permutations, depth, true, minimizeDuplicates)
+	permutator(domain, depth, true)
 }
 
 func configureDepth(depth uint) uint {
@@ -174,7 +183,11 @@ func generateDomains(flDomains string, flextractDomains bool) []string {
 	scanner1 := bufio.NewScanner(fh1)
 	for scanner1.Scan() {
 		domain := fmt.Sprintf("%s", scanner1.Text())
+		domain = strings.Trim(domain, " ")
 		if len(strings.Split(domain, ".")) < 2 {
+			continue
+		}
+		if containsElement(auxiliarDomains, domain) {
 			continue
 		}
 		auxiliarDomains = append(auxiliarDomains, domain)
@@ -185,6 +198,7 @@ func generateDomains(flDomains string, flextractDomains bool) []string {
 					break
 				}
 				aux2 := strings.Join(aux, ".")
+				aux2 = strings.Trim(aux2, " ")
 				if !containsElement(auxiliarDomains, aux2) {
 					auxiliarDomains = append(auxiliarDomains, aux2)
 				}
@@ -196,7 +210,9 @@ func generateDomains(flDomains string, flextractDomains bool) []string {
 	return auxiliarDomains
 }
 
-func generatePermutations(flPermutations string, flPrefixes bool, prefixes []string, permutatorNumber uint, domains []string) []string {
+func generatePermutations(flPermutations string, flPrefixes bool, permutatorNumber uint) []string {
+	prefixes := []string{"qa", "dev", "dev1", "demo", "test", "prueba", "mysql",
+		"pre", "pro", "prod", "cuali", "www", "ftp", "smtp", "mail"}
 	var permutations []string
 	pattern := regexp.MustCompile("\\d+")
 	if flPermutations != "" {
@@ -209,7 +225,8 @@ func generatePermutations(flPermutations string, flPrefixes bool, prefixes []str
 		for scanner2.Scan() {
 			line := fmt.Sprintf("%s", scanner2.Text())
 			permutations = append(permutations, line)
-			data := pattern.FindStringSubmatch(line)
+			permutatorGuion(&permutations, line, permutatorNumber)
+			data := pattern.FindAllStringSubmatch(line, -1)
 			if len(data) > 0 && permutatorNumber > 0 {
 				permutatorNumbers(&permutations, line, data, permutatorNumber)
 			}
@@ -222,17 +239,20 @@ func generatePermutations(flPermutations string, flPrefixes bool, prefixes []str
 			}
 		}
 	}
-	for _, dom := range domains {
-		if !isDomain(dom) && !isCCSLDDomain(dom) {
-			aux := strings.Split(dom, ".")
-			total := len(aux) - 2
-			aux = aux[:total]
-			for _, a := range aux {
-				if !containsElement(permutations, a) {
-					permutations = append(permutations, a)
-					data := pattern.FindStringSubmatch(a)
-					if len(data) > 0 && permutatorNumber > 0 {
-						permutatorNumbers(&permutations, a, data, permutatorNumber)
+	if ADVANCEDOPTION {
+		for _, dom := range ALLDOMAINS {
+			if !isDomain(dom) && !isCCSLDDomain(dom) {
+				aux := strings.Split(dom, ".")
+				total := len(aux) - 2
+				aux = aux[:total]
+				for _, a := range aux {
+					permutatorGuion(&permutations, a, permutatorNumber)
+					if !containsElement(permutations, a) {
+						permutations = append(permutations, a)
+						data := pattern.FindAllStringSubmatch(a, -1)
+						if len(data) > 0 && permutatorNumber > 0 {
+							permutatorNumbers(&permutations, a, data, permutatorNumber)
+						}
 					}
 				}
 			}
@@ -241,18 +261,36 @@ func generatePermutations(flPermutations string, flPrefixes bool, prefixes []str
 	return permutations
 }
 
-func permutatorNumbers(permutations *[]string, permutation string, dataToReplace []string, permutatorNumber uint) {
+func permutatorGuion(permutations *[]string, data string, permutatorNumber uint) {
+	if !ADVANCEDOPTION {
+		return
+	}
+	pattern := regexp.MustCompile("\\d+")
+	if strings.Contains(data, "-") {
+		for _, newSplit := range strings.Split(data, "-") {
+			if !containsElement(*permutations, newSplit) {
+				*permutations = append(*permutations, newSplit)
+				data := pattern.FindAllStringSubmatch(newSplit, -1)
+				if len(data) > 0 && permutatorNumber > 0 {
+					permutatorNumbers(permutations, newSplit, data, permutatorNumber)
+				}
+			}
+		}
+	}
+}
+
+func permutatorNumbers(permutations *[]string, permutation string, dataToReplace [][]string, permutatorNumber uint) {
 	defer func() {
 		recover()
 		for _, numberToRlace := range dataToReplace {
-			intNumber, err := strconv.Atoi(numberToRlace)
+			intNumber, err := strconv.Atoi(numberToRlace[0])
 			if err != nil {
 				continue
 			}
 			for i := +1; i <= int(permutatorNumber); i++ {
-				*permutations = append(*permutations, strings.Replace(permutation, numberToRlace, strconv.Itoa(intNumber+i), -1))
+				*permutations = append(*permutations, strings.Replace(permutation, numberToRlace[0], strconv.Itoa(intNumber+i), -1))
 				if (intNumber - i) >= 0 {
-					*permutations = append(*permutations, strings.Replace(permutation, numberToRlace, strconv.Itoa(intNumber-i), -1))
+					*permutations = append(*permutations, strings.Replace(permutation, numberToRlace[0], strconv.Itoa(intNumber-i), -1))
 				}
 			}
 		}
@@ -260,29 +298,27 @@ func permutatorNumbers(permutations *[]string, permutation string, dataToReplace
 }
 
 func StartGotator(flDomains string, flPermutations string, flDepth uint, flIterateNumbers uint,
-	flPrefixes bool, flextractDomains bool, flThreads uint, flminimizeDuplicates bool) {
-	prefixes := []string{"qa", "dev", "dev1", "demo", "test", "prueba", "mysql",
-		"pre", "pro", "prod", "cuali", "www", "ftp", "smtp", "mail"}
+	flPrefixes bool, flextractDomains bool, flThreads uint) {
 	intDepth := configureDepth(flDepth)
 
-	auxiliarDomains := generateDomains(flDomains, flextractDomains)
-	if len(auxiliarDomains) <= 0 {
+	ALLDOMAINS = generateDomains(flDomains, flextractDomains)
+	if len(ALLDOMAINS) <= 0 {
 		println("[-] No valid domains/subdomains found")
 		os.Exit(1)
 	}
-	permutations := generatePermutations(flPermutations, flPrefixes, prefixes, flIterateNumbers, auxiliarDomains)
+	PERMUTATIONS = generatePermutations(flPermutations, flPrefixes, flIterateNumbers)
 	threads := int(flThreads)
-	if len(auxiliarDomains) < threads { // Avoid having more threads than subdomains
-		threads = len(auxiliarDomains)
+	if len(ALLDOMAINS) < threads { // Avoid having more threads than subdomains
+		threads = len(ALLDOMAINS)
 	}
 	guardThreads := make(chan struct{}, threads)
-	runtime.GOMAXPROCS(2)
+	// runtime.GOMAXPROCS(2)
 	var wg sync.WaitGroup
-	for _, domain := range auxiliarDomains {
+	for _, domain := range ALLDOMAINS {
 		guardThreads <- struct{}{}
 		wg.Add(1)
 		go func(d string) {
-			worker(d, permutations, intDepth, flminimizeDuplicates)
+			worker(d, intDepth)
 			<-guardThreads
 			wg.Done()
 		}(domain)
@@ -299,6 +335,7 @@ func main() {
 		flIterateNumbers     = flag.Uint("numbers", 0, "Permute the numbers found in the list of permutations")
 		flPrefixes           = flag.Bool("prefixes", false, "Adding gotator prefixes to permutations")
 		flextractDomains     = flag.Bool("md", false, "Extract domains and subdomains from subdomains found in 'sub' list")
+		fladvancedOption     = flag.Bool("adv", false, "Advanced option. Generate permutations words with subdomains and words with -. And joins permutation word in the back (depth 1)")
 		flminimizeDuplicates = flag.Bool("mindup", false, "Set this flag to minimize duplicates. (For heavy workloads, it is recommended to activate this flag)")
 		flSilent             = flag.Bool("silent", false, "Gotator banner is not displayed")
 		flThreads            = flag.Uint("t", 10, "Max Go routines")
@@ -320,7 +357,8 @@ func main() {
 		banner()
 		println("[i] Working in progress\n")
 	}
-
+	MINIMIZEDUPLICATES = *flminimizeDuplicates
+	ADVANCEDOPTION = *fladvancedOption
 	StartGotator(*flDomains, *flPermutations, *flDepth, *flIterateNumbers, *flPrefixes,
-		*flextractDomains, *flThreads, *flminimizeDuplicates)
+		*flextractDomains, *flThreads)
 }

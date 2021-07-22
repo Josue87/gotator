@@ -211,8 +211,7 @@ func generateDomains(flDomains string, flextractDomains bool) []string {
 }
 
 func generatePermutations(flPermutations string, flPrefixes bool, permutatorNumber uint) []string {
-	prefixes := []string{"qa", "dev", "dev1", "demo", "test", "prueba", "mysql",
-		"pre", "pro", "prod", "cuali", "www", "ftp", "smtp", "mail"}
+	prefixes := []string{"1rer", "2", "2tty", "admin", "api", "app", "bbs", "blog", "cdn", "cloud", "cuali", "demo", "dev", "dev2", "email", "exchange", "forum", "ftp", "gov", "govyty", "gw", "host", "m", "mail", "mail2", "mx1", "mysql", "news", "ns", "ns1", "owa", "portal", "pre", "pro", "prod", "prueba", "qa", "remote", "secure", "server", "shop", "smtp", "store", "support", "test", "test", "tty", "vpn", "vps", "web", "ww1", "ww42", "www", "www2"}
 	var permutations []string
 	pattern := regexp.MustCompile("\\d+")
 	if flPermutations != "" {
@@ -225,6 +224,9 @@ func generatePermutations(flPermutations string, flPrefixes bool, permutatorNumb
 		for scanner2.Scan() {
 			line := fmt.Sprintf("%s", scanner2.Text())
 			line = strings.Trim(line, " ")
+			if containsElement(permutations, line) {
+				continue
+			}
 			permutations = append(permutations, line)
 			permutatorGuion(&permutations, line, permutatorNumber)
 			data := pattern.FindAllStringSubmatch(line, -1)
@@ -237,6 +239,10 @@ func generatePermutations(flPermutations string, flPrefixes bool, permutatorNumb
 		for _, prefix := range prefixes {
 			if !containsElement(permutations, prefix) {
 				permutations = append(permutations, prefix)
+				data := pattern.FindAllStringSubmatch(prefix, -1)
+				if len(data) > 0 && permutatorNumber > 0 {
+					permutatorNumbers(&permutations, prefix, data, permutatorNumber)
+				}
 			}
 		}
 	}

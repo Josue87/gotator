@@ -84,6 +84,7 @@ To upgrade the version add the **-u** parameter to the installation command.
   * Only in **depth 1**. With this option if subdomain target is `tech.example.com` and permutation is `test` we also interchange the position for the permutation "-" and "", obtaining results such as `techtest.example.com` and `tech-test.example.com` (check example 1).
 * Mode to "swap" domains, i.e. if the target is `dev.tech.example.com`, it will be added as target `tech.example.com` and `example.com` [**-md**].
 * Option to add default permutations list defined in gotator [**-prefixes**].
+  * List of prefixes: `1rer, 2, 2tty, admin, api, app, bbs, blog, cdn, cloud, cuali, demo, dev, dev2, email, exchange, forum, ftp, gov, govyty, gw, host, m, mail, mail2, mx1, mysql, news, ns, ns1, owa, portal, pre, pro, prod, prueba, qa, remote, secure, server, shop, smtp, store, support, test, test, tty, vpn, vps, web, ww1, ww42, www, www2`.
 * Only the results are written to the standard output. Banner and messages are sent to the error output. So you can pipe the command.
 
 

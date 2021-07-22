@@ -224,6 +224,7 @@ func generatePermutations(flPermutations string, flPrefixes bool, permutatorNumb
 		scanner2 := bufio.NewScanner(fh2)
 		for scanner2.Scan() {
 			line := fmt.Sprintf("%s", scanner2.Text())
+			line = strings.Trim(line, " ")
 			permutations = append(permutations, line)
 			permutatorGuion(&permutations, line, permutatorNumber)
 			data := pattern.FindAllStringSubmatch(line, -1)

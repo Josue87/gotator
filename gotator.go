@@ -334,7 +334,7 @@ func StartGotator(flDomains string, flPermutations string, flDepth uint, flItera
 }
 
 func main() {
-	VERSION = "1.0"
+	VERSION = "1.1"
 	var (
 		flDomains            = flag.String("sub", "", "List of domains to be swapped (1 per line) [Required]")
 		flPermutations       = flag.String("perm", "", "List of permutations (1 per line)")

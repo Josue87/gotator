@@ -11,7 +11,7 @@
     <img src="https://img.shields.io/badge/license-GNU-green.svg?style=square&logo=gnu">
   </a>
      <a href="https://github.com/Josue87/gotator">
-    <img src="https://img.shields.io/badge/version-1.0-yellow.svg?style=square&logo=github">
+    <img src="https://img.shields.io/badge/version-1.1-yellow.svg?style=square&logo=github">
   </a>
    <a href="https://twitter.com/JosueEncinar">
     <img src="https://img.shields.io/badge/author-@JosueEncinar-orange.svg?style=square&logo=twitter">
@@ -124,7 +124,7 @@ Change `uniq` to `sort -u` of the previous command if you want to sort them. (No
 
 # 🚀 Examples
 
-**Note**: The examples may correspond to earlier versions (where `-mindup` was not used).
+**Note**: The examples may correspond to earlier versions (where `-mindup` and `adv` were not used).
 
 We have the following lists:
 
@@ -168,14 +168,17 @@ gotator -sub subs.txt -perm perm.txt -depth 3 -mindup -numbers 20 | head -n 1000
 # Sort unique lines
 gotator -sub subs.txt -perm perm.txt -depth 2 -mindup -numbers 10 -prefixes | sort -u > outputSortUnique.txt
 
-# Unique lines 
+# Unique lines (only removes duplicate lines that follow each other) 
 gotator -sub subs.txt -perm perm.txt -depth 3 -mindup | uniq > outputUnique.txt
 
+# Unique lines 
+gotator -sub subs.txt -perm perm.txt -depth 3 -mindup -adv | anew > outputAnew.txt
+
 # Sort unique with limit size
-gotator -sub subs.txt -perm perm.txt -prefixes | head -c 1G | sort -u > output1GSortedUnique.txt
+gotator -sub subs.txt -perm perm.txt -prefixes -adv | head -c 1G | sort -u > output1GSortedUnique.txt
 
 ```
 
-**Note**: Examples have been given using `sort -u`, that will slow down the generation of results. There is no need to sort the results, it is recommended to use uniq or anew.
+**Note**: Examples have been given using `sort -u`, that will slow down the generation of results. There is no need to sort the results, it is recommended to use `anew`.
 
 **Notice**: This tool generates a lot of output information, it is recommended to use the `mindup` flag to reduce the number of lines.

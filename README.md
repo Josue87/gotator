@@ -97,13 +97,14 @@ The flags that can be used to launch the tool:
 | **sub** | string | yes| List of domains to be swapped. | `-sub subdomains.txt` |
 | **perm** | string | no | List of permutations. | `-perm permutations.txt` |
 | **depth** | uint | no | Configure the depth (Between 1 and 3) - Default 1. | `-depth 2` |
-| **numbers** | uint | no | Configure the number of iterations to the numbers found in the permutations (up and down). Default 0 Skip!. | `-numbers 10` |
+| **numbers** | uint | no | Configure the number of iterations to the numbers found in the permutations (up and down). Default 0 Skip!. This option **penalizes performance**, use small numbers| `-numbers 10` |
 | **prefixes** | bool | no | Adding default gotator prefixes to permutations. If not configured perm is used by default. If perm is specified with this flag you merge the permutations. | `-prefixes` |
 | **md** | bool | no | Extract 'previous' domains and subdomains from subdomains found in the list 'sub'. | `-md` |
 | **adv** | bool | no | Advanced option. Generate permutations words with subdomains and words with -. And joins permutation word in the back (depth 1). | `-adv` |
 | **mindup** | bool | no | Set this flag to minimize duplicates. (For heavy workloads, it is recommended to activate this flag). | `-mindup` |
+| **fast** | bool | no | Don't check to root domains (Take care with your scope) | `-fast` |
 | **silent** | bool | no | Gotator banner is not displayed. | `-silent` |
-| **t** | uint | no | Max Go routines (Default 10). Note: Data is painted by the console, threads may increase processing time | `-t 100` |
+| **t** | uint | no | Max Go routines (Default 100). Note: Data is painted by the console, threads may increase processing time | `-t 200` |
 **version** | bool | no | Show Gotator version | `-version` |
 
 # 👾 Usage

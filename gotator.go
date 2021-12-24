@@ -17,6 +17,7 @@ var (
 	PERMUTATIONS       []string
 	MINIMIZEDUPLICATES bool
 	ADVANCEDOPTION     bool
+	FASTMODE           bool
 )
 
 func banner() {
@@ -56,6 +57,13 @@ func isCCSLDDomain(domain string) bool {
 	return false
 }
 
+func checkDoamin(domain string) bool {
+	if FASTMODE {
+		return isDomain(domain)
+	}
+	return isDomain(domain) || isCCSLDDomain(domain)
+}
+
 func containsElement(s []string, str string) bool {
 	existElement := false
 	for _, v := range s {
@@ -89,7 +97,7 @@ func getJoins(domain string, perm string, firstTime bool) []string {
 		}
 	}
 	// It is only possible to be a domain the first time (firstTime reduces comopopulations at each step)
-	if firstTime && (isDomain(domain) || isCCSLDDomain(domain)) {
+	if firstTime && checkDoamin(domain) {
 		joins = []string{"."}
 	} else if numberPrefix {
 		for _, n := range allNumbers {
@@ -135,7 +143,7 @@ func permutator(domain string, depth uint, firtstTime bool) {
 			}
 		}
 		if depth == 1 && firtstTime && ADVANCEDOPTION { // First iteration joins permutation word in the back
-			if !isDomain(domain) && !isCCSLDDomain(domain) {
+			if !checkDoamin(domain) {
 				domSplit := strings.Split(domain, ".")
 				firstElement := domSplit[0]
 				subdomainFirstElement := removeNumbers(firstElement)
@@ -191,7 +199,7 @@ func generateDomains(flDomains string, flextractDomains bool) []string {
 			continue
 		}
 		auxiliarDomains = append(auxiliarDomains, domain)
-		if flextractDomains && (!isDomain(domain) && !isCCSLDDomain(domain)) { //extract domain/subdomains from a subdomain
+		if flextractDomains && !checkDoamin(domain) { //extract domain/subdomains from a subdomain
 			aux := strings.Split(domain, ".")
 			for {
 				if len(aux) < 2 || (isCCSLDDomain(strings.Join(aux, ".")) && len(aux) < 3) {
@@ -248,7 +256,7 @@ func generatePermutations(flPermutations string, flPrefixes bool, permutatorNumb
 	}
 	if ADVANCEDOPTION {
 		for _, dom := range ALLDOMAINS {
-			if !isDomain(dom) && !isCCSLDDomain(dom) {
+			if !checkDoamin(dom) {
 				aux := strings.Split(dom, ".")
 				total := len(aux) - 2
 				aux = aux[:total]
@@ -342,10 +350,11 @@ func main() {
 		flIterateNumbers     = flag.Uint("numbers", 0, "Permute the numbers found in the list of permutations")
 		flPrefixes           = flag.Bool("prefixes", false, "Adding gotator prefixes to permutations")
 		flextractDomains     = flag.Bool("md", false, "Extract domains and subdomains from subdomains found in 'sub' list")
-		fladvancedOption     = flag.Bool("adv", false, "Advanced option. Generate permutations words with subdomains and words with -. And joins permutation word in the back (depth 1)")
+		fladvancedOption     = flag.Bool("adv", false, "Advanced option. Generate permutations words with subdomains and words with -. And joins permutation word in the back (only in depth 1)")
 		flminimizeDuplicates = flag.Bool("mindup", false, "Set this flag to minimize duplicates. (For heavy workloads, it is recommended to activate this flag)")
+		flFast               = flag.Bool("fast", false, "Don't advanced check to root domains (Take care with your scope)")
 		flSilent             = flag.Bool("silent", false, "Gotator banner is not displayed")
-		flThreads            = flag.Uint("t", 10, "Max Go routines")
+		flThreads            = flag.Uint("t", 100, "Max Go routines")
 		flVersion            = flag.Bool("version", false, "Show Gotator version")
 	)
 	flag.Parse()
@@ -366,6 +375,7 @@ func main() {
 	}
 	MINIMIZEDUPLICATES = *flminimizeDuplicates
 	ADVANCEDOPTION = *fladvancedOption
+	FASTMODE = *flFast
 	StartGotator(*flDomains, *flPermutations, *flDepth, *flIterateNumbers, *flPrefixes,
 		*flextractDomains, *flThreads)
 }

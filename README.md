@@ -40,7 +40,7 @@ If you want to make modifications locally and compile it, follow the instruction
 If you are only interested in using the program:
 
 ```
-> go get github.com/Josue87/gotator
+> go install github.com/Josue87/gotator@latest
 ```
 
 🐳 **Docker** option:

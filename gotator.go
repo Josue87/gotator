@@ -57,7 +57,7 @@ func isCCSLDDomain(domain string) bool {
 	return false
 }
 
-func checkDoamin(domain string) bool {
+func checkDomain(domain string) bool {
 	if FASTMODE {
 		return isDomain(domain)
 	}
@@ -97,7 +97,7 @@ func getJoins(domain string, perm string, firstTime bool) []string {
 		}
 	}
 	// It is only possible to be a domain the first time (firstTime reduces comopopulations at each step)
-	if firstTime && checkDoamin(domain) {
+	if firstTime && checkDomain(domain) {
 		joins = []string{"."}
 	} else if numberPrefix {
 		for _, n := range allNumbers {
@@ -143,7 +143,7 @@ func permutator(domain string, depth uint, firtstTime bool) {
 			}
 		}
 		if depth == 1 && firtstTime && ADVANCEDOPTION { // First iteration joins permutation word in the back
-			if !checkDoamin(domain) {
+			if !checkDomain(domain) {
 				domSplit := strings.Split(domain, ".")
 				firstElement := domSplit[0]
 				subdomainFirstElement := removeNumbers(firstElement)
@@ -199,7 +199,7 @@ func generateDomains(flDomains string, flextractDomains bool) []string {
 			continue
 		}
 		auxiliarDomains = append(auxiliarDomains, domain)
-		if flextractDomains && !checkDoamin(domain) { //extract domain/subdomains from a subdomain
+		if flextractDomains && !checkDomain(domain) { //extract domain/subdomains from a subdomain
 			aux := strings.Split(domain, ".")
 			for {
 				if len(aux) < 2 || (isCCSLDDomain(strings.Join(aux, ".")) && len(aux) < 3) {
@@ -256,7 +256,7 @@ func generatePermutations(flPermutations string, flPrefixes bool, permutatorNumb
 	}
 	if ADVANCEDOPTION {
 		for _, dom := range ALLDOMAINS {
-			if !checkDoamin(dom) {
+			if !checkDomain(dom) {
 				aux := strings.Split(dom, ".")
 				total := len(aux) - 2
 				aux = aux[:total]
